@@ -7,10 +7,10 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "build": "tsc && tailwindcss -i ./src/input.css -o ./dist/output.css --minify",
+    "build": "tsc && tailwindcss -i ./src/input.css -o ./dist/output.css --minify && cp ./src/index.html ./dist/",
     "watch": "concurrently \"tsc -w\" \"tailwindcss -i ./src/input.css -o ./dist/output.css --watch\"",
-    "start": "npm run build && live-server ."
-  },
+    "start": "npm run build && live-server ./dist"
+  }
   "dependencies": {
     "live-server": "^1.2.2"
   },
