@@ -446,9 +446,8 @@ const locationDetails: Record<string, LocationDetails> = {
         description: 'Vatican City, officially the Vatican City State, is the smallest country in the world by both area and population. Located within Rome, Italy, it is the headquarters of the Roman Catholic Church and home to the Pope. The Vatican Museums house some of the world\'s most important art collections, including the Sistine Chapel with Michelangelo\'s famous ceiling frescoes.',
         address: 'Vatican City, 00120 Vatican City',
         images: [
-            'https://images.unsplash.com/photo-1566438480900-0609be27a4be?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
-            'https://images.unsplash.com/photo-1566438480900-0609be27a4be?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
-            'https://images.unsplash.com/photo-1566438480900-0609be27a4be?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80'
+            'https://images.unsplash.com/photo-1566438480900-0609be27a4be',
+            'https://images.unsplash.com/photo-1566438480900-0609be27a4be'
         ],
         comments: [
             'The Sistine Chapel is even more impressive in person than in photos.',
@@ -639,8 +638,8 @@ const locations: Locations = {
         title: 'Vatican City',
         description: 'Vatican City is the headquarters of the Roman Catholic Church and the Pope\'s residence. It is the smallest independent state in the world by both area and population.',
         images: [
-            'https://images.unsplash.com/photo-1552832230-c0197dd311b5',
-            'https://images.unsplash.com/photo-1552832230-c0197dd311b5'
+            'https://images.unsplash.com/photo-1566438480900-0609be27a4be',
+            'https://images.unsplash.com/photo-1566438480900-0609be27a4be'
         ],
         comments: [
             { user: 'Peter', text: 'Beautiful architecture!', date: '2024-03-13' },
@@ -821,4 +820,45 @@ document.addEventListener('DOMContentLoaded', () => {
             closeModalHandler();
         }
     });
+});
+
+// Mobile navigation and theme switch functionality
+document.addEventListener('DOMContentLoaded', () => {
+    // Mobile menu functionality
+    const mobileMenuButton = document.getElementById('mobileMenuButton');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const mobileNavButtons = mobileMenu?.querySelectorAll('button');
+
+    mobileMenuButton?.addEventListener('click', () => {
+        mobileMenu?.classList.toggle('hidden');
+    });
+
+    // Close mobile menu when clicking a nav button
+    mobileNavButtons?.forEach(button => {
+        button.addEventListener('click', () => {
+            mobileMenu?.classList.add('hidden');
+        });
+    });
+
+    // Theme switch functionality
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const mobileDarkModeToggle = document.getElementById('mobileDarkModeToggle');
+    const html = document.documentElement;
+
+    // Check for saved theme preference
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        html.classList.add('dark');
+    }
+
+    // Function to toggle theme
+    function toggleTheme() {
+        html.classList.toggle('dark');
+        const isDark = html.classList.contains('dark');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    }
+
+    // Add event listeners to both theme toggle buttons
+    darkModeToggle?.addEventListener('click', toggleTheme);
+    mobileDarkModeToggle?.addEventListener('click', toggleTheme);
 });
