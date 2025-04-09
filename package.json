@@ -7,7 +7,7 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "build": "tsc && tailwindcss -i ./src/input.css -o ./dist/output.css --minify && cp ./src/index.html ./dist/ && sed -i 's|../dist/output.css|/output.css|g' ./dist/index.html && sed -i 's|../dist/scripts.js|/scripts.js|g' ./dist/index.html",
+    "build": "tsc && tailwindcss -i ./src/input.css -o ./dist/output.css --minify && cp ./src/index.html ./dist/ && sed -i 's|../dist/output.css|./output.css|g' ./dist/index.html && sed -i 's|../dist/scripts.js|./scripts.js|g' ./dist/index.html",
     "watch": "concurrently \"tsc -w\" \"tailwindcss -i ./src/input.css -o ./dist/output.css --watch\"",
     "start": "npm run build && live-server ./dist"
   },
