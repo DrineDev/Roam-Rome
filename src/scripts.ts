@@ -28,19 +28,189 @@ function prevSlide() {
     showSlide(currentSlide);
 }
 
+// Dark mode functionality
+function initDarkMode(): void {
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const mobileDarkModeToggle = document.getElementById('mobileDarkModeToggle');
+    const html = document.documentElement;
 
+    // Ensure we start in light mode
+    html.classList.remove('dark');
+
+    // Function to toggle theme
+    function toggleTheme() {
+        if (html.classList.contains('dark')) {
+            html.classList.remove('dark');
+        } else {
+            html.classList.add('dark');
+        }
+    }
+
+    // Add event listeners to both toggle buttons
+    darkModeToggle?.addEventListener('click', toggleTheme);
+    mobileDarkModeToggle?.addEventListener('click', toggleTheme);
+}
+
+// Form submission handler
+function initContactForm(): void {
+    const contactForm = document.getElementById('contactForm') as HTMLFormElement;
+    if (!contactForm) return;
+
+    contactForm.addEventListener('submit', handleSubmit);
+}
+
+// Simple form submission function
+async function handleSubmit(event: SubmitEvent): Promise<void> {
+    event.preventDefault();
+
+    const form = event.target as HTMLFormElement;
+    const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+
+    // Store original button text
+    const originalButtonText = submitButton.textContent;
+
+    try {
+        // Disable button during submission
+        submitButton.disabled = true;
+        submitButton.textContent = 'Sending...';
+
+        // Get form data
+        const formData = new FormData(form);
+
+        // Add timestamp
+        formData.append('timestamp', new Date().toISOString());
+
+        // Log the form data for debugging
+        console.log('Form data being sent:', Object.fromEntries(formData));
+
+        // Google Apps Script URL
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbyCCMWS7u39z76S7-DypDfdb-cbM9MVhdfZA5b8DV5nQFXuMhnteEsztEu1lzp6Zcmu/exec';
+
+        // Send data using fetch
+        const response = await fetch(scriptURL, {
+            method: 'POST',
+            body: formData,
+            mode: 'no-cors' // This is important for Google Apps Script
+        });
+
+        console.log('Form submitted successfully');
+
+        // Show success message
+        showNotification('Message sent successfully!', 'success');
+
+        // Reset the form
+        form.reset();
+
+    } catch (error) {
+        console.error('Submission error:', error);
+        showNotification('Failed to send message. Please try again.', 'error');
+    } finally {
+        // Re-enable button and restore original text
+        submitButton.disabled = false;
+        submitButton.textContent = originalButtonText;
+    }
+}
+
+// Function to show notifications
+function showNotification(message: string, type: 'success' | 'error'): void {
+    // Remove any existing notifications
+    const existingNotification = document.getElementById('notification');
+    if (existingNotification) {
+        existingNotification.remove();
+    }
+
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.id = 'notification';
+    notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`;
+    notification.textContent = message;
+
+    // Add to document
+    document.body.appendChild(notification);
+
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 5000);
+}
+
+// Initialize everything when the DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize carousel
+    showSlide(0);
+    let slideInterval = setInterval(nextSlide, 5000);
+
+    // Add click handlers to dots
+    dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => {
+            currentSlide = index;
+            showSlide(currentSlide);
+            clearInterval(slideInterval);
+            slideInterval = setInterval(nextSlide, 5000);
+        });
+    });
+
+    // Pause carousel on hover
+    const carouselContainer = document.querySelector('.carousel-container');
+    if (carouselContainer) {
+        carouselContainer.addEventListener('mouseenter', () => {
+            clearInterval(slideInterval);
+        });
+        carouselContainer.addEventListener('mouseleave', () => {
+            slideInterval = setInterval(nextSlide, 5000);
+        });
+    }
+
+    // Add keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') {
+            prevSlide();
+        } else if (e.key === 'ArrowRight') {
+            nextSlide();
+        }
+    });
+
+    // Initialize navigation buttons
+    const navButtons = document.querySelectorAll('nav button');
+    navButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            const target = e.target as HTMLElement;
+            const buttonText = target.textContent?.trim().toLowerCase();
+
+            if (buttonText === 'home') {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (buttonText === 'tours') {
+                const toursSection = document.getElementById('tours');
+                if (toursSection) {
+                    toursSection.scrollIntoView({ behavior: 'smooth' });
+                }
+            } else if (buttonText === 'contact') {
+                const contactSection = document.getElementById('contact');
+                if (contactSection) {
+                    contactSection.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+        });
+    });
+
+    // Initialize dark mode
+    initDarkMode();
+
+    // Initialize contact form
+    initContactForm();
+});
 
 // Navigation smooth scrolling
 document.addEventListener('DOMContentLoaded', () => {
     // Get all navigation buttons
     const navButtons = document.querySelectorAll('nav button');
-    
+
     // Add click event listeners to each button
     navButtons.forEach(button => {
         button.addEventListener('click', (e) => {
             const target = e.target as HTMLElement;
             const buttonText = target.textContent?.trim().toLowerCase();
-            
+
             if (buttonText === 'home') {
                 // Scroll to top of page
                 window.scrollTo({
@@ -62,12 +232,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
-    
+
     // Initialize dark mode
     initDarkMode();
 });
-
-
 
 // Search functionality
 const searchInput = document.getElementById('locationSearch') as HTMLInputElement;
@@ -104,10 +272,10 @@ searchCategories.forEach(category => {
         });
         category.classList.remove('bg-gray-100', 'text-gray-700');
         category.classList.add('bg-black', 'text-white');
-        
+
         // Update current category
         currentCategory = (category as HTMLElement).dataset.category || 'all';
-        
+
         // Reapply current search with new category
         if (searchInput) {
             filterLocations(searchInput.value);
@@ -125,12 +293,12 @@ searchButton?.addEventListener('click', () => {
 // Enhanced search functionality with debouncing
 searchInput?.addEventListener('input', (e) => {
     const searchTerm = (e.target as HTMLInputElement).value;
-    
+
     // Clear previous timeout
     if (searchTimeout) {
         window.clearTimeout(searchTimeout);
     }
-    
+
     // Set new timeout for debouncing
     searchTimeout = window.setTimeout(() => {
         filterLocations(searchTerm);
@@ -146,25 +314,25 @@ searchInput?.addEventListener('keydown', (e) => {
 
 function filterLocations(searchTerm: string) {
     if (!locationCards) return;
-    
+
     let visibleCount = 0;
     const searchTermLower = searchTerm.toLowerCase();
-    
+
     Array.from(locationCards).forEach(card => {
         const title = card.querySelector('h4')?.textContent || '';
         const description = card.querySelector('p')?.textContent || '';
         const address = card.querySelector('.text-sm')?.textContent || '';
-        
+
         // Check if location matches current category
-        const matchesCategory = currentCategory === 'all' || 
+        const matchesCategory = currentCategory === 'all' ||
             locationCategories[title]?.includes(currentCategory);
-        
+
         // Check if location matches search term
         const matchesSearch = searchTermLower === '' ||
             title.toLowerCase().includes(searchTermLower) ||
             description.toLowerCase().includes(searchTermLower) ||
             address.toLowerCase().includes(searchTermLower);
-        
+
         // Show/hide based on both category and search term
         if (matchesCategory && matchesSearch) {
             (card as HTMLElement).style.display = 'block';
@@ -173,7 +341,7 @@ function filterLocations(searchTerm: string) {
             (card as HTMLElement).style.display = 'none';
         }
     });
-    
+
     // Update results count
     if (searchResultsCount) {
         if (visibleCount === 0) {
@@ -191,7 +359,7 @@ filterLocations('');
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize first slide
     showSlide(0);
-    
+
     // Auto-advance slides every 5 seconds
     let slideInterval = setInterval(nextSlide, 5000);
 
@@ -228,30 +396,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-
-
-// Dark mode functionality
-function initDarkMode(): void {
-const darkModeToggle = document.getElementById('darkModeToggle');
-const html = document.documentElement;
-
-// Check for saved dark mode preference
-if (localStorage.getItem('darkMode') === 'true' || 
-    (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-    html.classList.remove('light');
-    html.classList.add('dark');
-}
-
-// Toggle dark mode
-darkModeToggle?.addEventListener('click', () => {
-    html.classList.toggle('dark');
-    html.classList.toggle('light');
-    localStorage.setItem('darkMode', html.classList.contains('dark').toString());
-});
-}
-
-
-
 // Contact form functionality
 interface ContactFormData {
     firstName: string;
@@ -267,104 +411,27 @@ interface ApiResponse {
     [key: string]: any;
 }
 
-// Simple form submission function
-async function handleSubmit(event: SubmitEvent): Promise<void> {
-    event.preventDefault();
-    
-    const form = event.target as HTMLFormElement;
-    const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
-    
-    // Store original button text
-    const originalButtonText = submitButton.textContent;
-    
-    try {
-        // Disable button during submission
-        submitButton.disabled = true;
-        submitButton.textContent = 'Sending...';
-        
-        // Get form data
-        const formData = new FormData(form);
-        
-        // Add timestamp
-        formData.append('timestamp', new Date().toISOString());
-        
-        // Log the form data for debugging
-        console.log('Form data being sent:', Object.fromEntries(formData));
-        
-        // Google Apps Script URL
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbyCCMWS7u39z76S7-DypDfdb-cbM9MVhdfZA5b8DV5nQFXuMhnteEsztEu1lzp6Zcmu/exec';
-        
-        // Send data using fetch
-        const response = await fetch(scriptURL, {
-            method: 'POST',
-            body: formData,
-            mode: 'no-cors' // This is important for Google Apps Script
-        });
-        
-        console.log('Form submitted successfully');
-        
-        // Show success message
-        showNotification('Message sent successfully!', 'success');
-        
-        // Reset the form
-        form.reset();
-        
-    } catch (error) {
-        console.error('Submission error:', error);
-        showNotification('Failed to send message. Please try again.', 'error');
-    } finally {
-        // Re-enable button and restore original text
-        submitButton.disabled = false;
-        submitButton.textContent = originalButtonText;
-    }
-}
-
-// Function to show notifications
-function showNotification(message: string, type: 'success' | 'error'): void {
-    // Remove any existing notifications
-    const existingNotification = document.getElementById('notification');
-    if (existingNotification) {
-        existingNotification.remove();
-    }
-    
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.id = 'notification';
-    notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
-        type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-    }`;
-    notification.textContent = message;
-    
-    // Add to document
-    document.body.appendChild(notification);
-    
-    // Auto-remove after 5 seconds
-    setTimeout(() => {
-        notification.remove();
-    }, 5000);
-}
-
 // Initialize carousel
 function initCarousel(): void {
     const slides = document.querySelectorAll('.carousel-slide');
     const dots = document.querySelectorAll('.carousel-dot');
     let currentSlide = 0;
-    
+
     // Function to show a specific slide
     function showSlide(index: number): void {
         slides.forEach(slide => slide.classList.remove('active'));
         dots.forEach(dot => dot.classList.remove('bg-opacity-100'));
-        
+
         slides[index].classList.add('active');
         dots[index].classList.add('bg-opacity-100');
         currentSlide = index;
     }
-    
+
     // Add click events to dots
     dots.forEach((dot, index) => {
         dot.addEventListener('click', () => showSlide(index));
     });
-    
+
     // Auto-advance slides every 5 seconds
     setInterval(() => {
         showSlide((currentSlide + 1) % slides.length);
@@ -377,17 +444,17 @@ function initSearch(): void {
     const searchButton = document.getElementById('searchButton');
     const locationCards = document.querySelectorAll('#locationCards > div');
     const searchResultsCount = document.getElementById('searchResultsCount');
-    
+
     if (searchInput && searchButton && searchResultsCount) {
         // Function to filter locations
         function filterLocations(): void {
             const searchTerm = searchInput.value.toLowerCase();
             let visibleCount = 0;
-            
+
             locationCards.forEach(card => {
                 const title = card.querySelector('h4')?.textContent?.toLowerCase() || '';
                 const description = card.querySelector('p')?.textContent?.toLowerCase() || '';
-                
+
                 if (title.includes(searchTerm) || description.includes(searchTerm)) {
                     (card as HTMLElement).style.display = '';
                     visibleCount++;
@@ -395,13 +462,13 @@ function initSearch(): void {
                     (card as HTMLElement).style.display = 'none';
                 }
             });
-            
+
             // Update results count
             if (searchResultsCount) {
                 searchResultsCount.textContent = `Showing ${visibleCount} of ${locationCards.length} locations`;
             }
         }
-        
+
         // Add event listeners
         searchButton.addEventListener('click', filterLocations);
         searchInput.addEventListener('keyup', (e) => {
@@ -820,10 +887,27 @@ document.addEventListener('DOMContentLoaded', () => {
             closeModalHandler();
         }
     });
-});
 
-// Mobile navigation and theme switch functionality
-document.addEventListener('DOMContentLoaded', () => {
+    // Initialize dark mode
+    initDarkMode();
+    
+    // Initialize carousel
+    showSlide(0);
+    
+    // Auto-advance slides every 5 seconds
+    let slideInterval = setInterval(nextSlide, 5000);
+
+    // Add click handlers to dots
+    dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => {
+            currentSlide = index;
+            showSlide(currentSlide);
+            // Reset the interval
+            clearInterval(slideInterval);
+            slideInterval = setInterval(nextSlide, 5000);
+        });
+    });
+
     // Mobile menu functionality
     const mobileMenuButton = document.getElementById('mobileMenuButton');
     const mobileMenu = document.getElementById('mobileMenu');
@@ -839,26 +923,4 @@ document.addEventListener('DOMContentLoaded', () => {
             mobileMenu?.classList.add('hidden');
         });
     });
-
-    // Theme switch functionality
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    const mobileDarkModeToggle = document.getElementById('mobileDarkModeToggle');
-    const html = document.documentElement;
-
-    // Check for saved theme preference
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        html.classList.add('dark');
-    }
-
-    // Function to toggle theme
-    function toggleTheme() {
-        html.classList.toggle('dark');
-        const isDark = html.classList.contains('dark');
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    }
-
-    // Add event listeners to both theme toggle buttons
-    darkModeToggle?.addEventListener('click', toggleTheme);
-    mobileDarkModeToggle?.addEventListener('click', toggleTheme);
 });
